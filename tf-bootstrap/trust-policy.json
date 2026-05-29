@@ -12,7 +12,7 @@
           "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
         },
         "StringLike": {
-          "token.actions.githubusercontent.com:sub": "repo:rfirpo/Crescendo-DevOps-exam:*"
+          "token.actions.githubusercontent.com:sub": "repo:rogerfc/Crescendo-DevOps-exam:*"
         }
       }
     }
