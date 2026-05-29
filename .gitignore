@@ -4,6 +4,7 @@ terraform/.terraform.lock.hcl
 terraform/terraform.tfstate
 terraform/terraform.tfstate.backup
 terraform/*.tfplan
+terraform/tfplan
 terraform/override.tf
 terraform/override.tf.json
 terraform/*_override.tf
@@ -13,3 +14,6 @@ terraform/*_override.tf.json
 .env
 *.pem
 *.key
+
+# macOS 
+.DS_Store
