@@ -1,0 +1,43 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "TFState",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject", "s3:PutObject", "s3:DeleteObject", "s3:ListBucket"
+      ],
+      "Resource": [
+        "arn:aws:s3:::rfirpo-crescendo-tfstate",
+        "arn:aws:s3:::rfirpo-crescendo-tfstate/*"
+      ]
+    },
+    {
+      "Sid": "Infra",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:*",
+        "elasticloadbalancing:*",
+        "cloudfront:*",
+        "iam:CreateRole",
+        "iam:DeleteRole",
+        "iam:GetRole",
+        "iam:PassRole",
+        "iam:AttachRolePolicy",
+        "iam:DetachRolePolicy",
+        "iam:ListAttachedRolePolicies",
+        "iam:ListRolePolicies",
+        "iam:CreateInstanceProfile",
+        "iam:DeleteInstanceProfile",
+        "iam:GetInstanceProfile",
+        "iam:AddRoleToInstanceProfile",
+        "iam:RemoveRoleFromInstanceProfile",
+        "iam:TagRole",
+        "iam:UntagRole",
+        "iam:TagInstanceProfile",
+        "iam:ListInstanceProfilesForRole"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
