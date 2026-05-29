@@ -44,5 +44,8 @@ resource "aws_instance" "magnolia" {
   vpc_security_group_ids = [aws_security_group.ec2.id]
   iam_instance_profile   = aws_iam_instance_profile.ec2.name
 
+  user_data                   = file("${path.module}/user_data.sh")
+  user_data_replace_on_change = true
+
   tags = { Name = "${var.project}-magnolia" }
 }
