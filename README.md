@@ -228,6 +228,7 @@ The first page load after a cold start may be slow (Tomcat JSP compilation).
 - No secrets management — only the default `superuser` credential is in use
 - No distinct Author / Publisher instance topology
 - No protection against application-level attacks (DDoS, etc.)
+- No observability — no centralised log collection, no metrics, no alerting or monitoring
 - EC2 instance is rebuilt from scratch on every change — no AMI baking or in-place update mechanism
 - Some values are hardcoded (GitHub username, project prefix) — deployment elsewhere requires manual edits
 - CI workflows are scoped to the repository owner; other contributors cannot trigger apply or destroy
