@@ -49,10 +49,13 @@ jobs:
         continue-on-error: true
 
       - name: Write plan to job summary
+        env:
+          PLAN: ${{ steps.plan.outputs.stdout }}
+          OUTCOME: ${{ steps.plan.outcome }}
         run: |
           echo "### Terraform Plan" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          if [[ "${{ steps.plan.outcome }}" == "success" ]]; then
+          if [[ "$OUTCOME" == "success" ]]; then
             echo "**Result: ✅ success**" >> "$GITHUB_STEP_SUMMARY"
           else
             echo "**Result: ❌ failure**" >> "$GITHUB_STEP_SUMMARY"
@@ -61,7 +64,7 @@ jobs:
           echo '<details><summary>Show Plan</summary>' >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo '```hcl' >> "$GITHUB_STEP_SUMMARY"
-          echo "${{ steps.plan.outputs.stdout }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "$PLAN" >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "</details>" >> "$GITHUB_STEP_SUMMARY"

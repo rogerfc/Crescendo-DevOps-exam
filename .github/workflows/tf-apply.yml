@@ -44,13 +44,15 @@ jobs:
         run: terraform plan -no-color -out=tfplan
 
       - name: Write plan to job summary
+        env:
+          PLAN: ${{ steps.plan.outputs.stdout }}
         run: |
           echo "### Terraform Plan" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo '<details><summary>Show Plan</summary>' >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo '```hcl' >> "$GITHUB_STEP_SUMMARY"
-          echo "${{ steps.plan.outputs.stdout }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "$PLAN" >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "</details>" >> "$GITHUB_STEP_SUMMARY"
