@@ -12,6 +12,7 @@ This is a demo-grade setup — it prioritises clarity and reproducibility over p
 
 ## Architecture
 
+
 ```mermaid
 graph TB
     Internet((Internet))
@@ -24,13 +25,12 @@ graph TB
 
     subgraph AWS["AWS · eu-west-1"]
         subgraph VPC["VPC 10.0.0.0/16"]
-            subgraph PubA["Public · eu-west-1a"]
-                IGW[Internet Gateway]
+            IGW[Internet Gateway]
+
+            subgraph Pub["Public Subnets · eu-west-1a · eu-west-1b"]
                 NATGW[NAT Gateway]
+                ALB[Application Load Balancer · HTTP :80]
             end
-            subgraph PubB["Public · eu-west-1b"]
-            end
-            ALB[Application Load Balancer HTTP :80]
 
             subgraph PrivA["Private · eu-west-1a"]
                 subgraph EC2["EC2"]
@@ -46,42 +46,42 @@ graph TB
         S3State["S3 Terraform state"]
     end
 
-    CFD -->|HTTP :80| ALB
+    CFD -->|"HTTP :80 · SG: CloudFront IPs only"| ALB
     ALB --> Nginx
     Nginx -->|proxy_pass| Tomcat
     Tomcat --> Magnolia
     EC2 -.->|outbound via| NATGW
     NATGW -.-> IGW
+    IGW -.-> Internet
     SSM -.->|shell access| EC2
 ```
+
 
 ---
 
 ## Design decisions
-General
-- Stick to the test scope, avoid complexity
 
-Infrastructure
-- Use latest stable terraform 1.15 
-- Store tfstate in AWS S3 with native locking
-- Deploy in AWS Ireland region for compatibility
-- Expose the app only via CDN
-- Access to the EC2 only via SSM 
-- EC2 sized for a demo, in the free tier
+### General
+- Scope limited to what the task requires — no over-engineering
 
-Application
-- EC2 AMI using Amazon Linux 2023 to simplify deployments and have native support (SSM)
-- Use the demo files for easy out-of-the-box setup
-- Define a systemd entry to run magnolia as a system service
-- Treat the EC2 node as disposable, to reduce complexity
-- Shell access only via SSM or web console, for security
+### Infrastructure
+- Terraform 1.15 — latest stable at time of writing
+- Terraform state in S3 with native locking (`use_lockfile`) — simpler than DynamoDB, built into TF 1.10+
+- Deployed in AWS eu-west-1
+- ALB SG restricted to CloudFront IPs via AWS-managed prefix list — direct access to the ALB DNS is blocked at the network level
+- Application accessible only via CloudFront
+- EC2 access only via SSM Session Manager — no key pairs, no inbound SSH rule
 
-CI
-- Establish trust between GH and AWS IAM via OIDC for simplicity and security
-- Simple terraform workflows, one for the test, two for my own testing
-- Protect tf apply requiring my approval
+### Application
+- Amazon Linux 2023 AMI — current AWS standard; native SSM support out of the box
+- Magnolia community demo bundle — includes Tomcat, no manual assembly required
+- Magnolia runs as a systemd service under a dedicated unprivileged user
+- EC2 instance treated as disposable — rebuilt from scratch on every `terraform apply`
 
----
+### CI
+- GitHub Actions authenticates to AWS via OIDC — no long-lived credentials stored in the repo
+- Three workflows: PR checks, manual apply (Plan → approval → Apply), manual destroy (Plan → approval → Destroy)
+- Apply and destroy require approval from a repository environment reviewer before running
 
 ## How to run
 
@@ -216,24 +216,22 @@ The first page load after a cold start may be slow (Tomcat JSP compilation).
 ---
 
 ## Assumptions
-- This setup is just for showing up basic skills in a demo, not intended for production purposes
-- Having the application loading is enough
+- Scope is a single-environment demo deployment; production readiness is explicitly out of scope
+- Having the application load and respond is the acceptance criterion
 
 ## Known limitations
-- Just basic security implemented, we are essentially exposing a dev instance
-- Not properly dimensioned for any other use than showing the app running
-- Not setup for HA or scalability
-- No permanent storge in disk or db
-- No centralized user storage
-- No secret storage used (only the superuser passwd used)
-- New instance deployment and startup times are quite slow
-- No distinct author / publisher instance roles
-- Lack of protection against attackers (DDoS, ...)
-- May not be ready to deploy elsewhere without changing hardcoded strings (e.g. github user, project name)
-- CI is limited to plan for other users
-- GHA workflows and SDLC are simplistic and offer little protection
-- EC2 instance is recreated after each change, this is a major PITA but I consider it out of scope
-- EC2 instance is recreated from scratch every time, no AMI or similar created. 
+- Minimal security posture — a dev instance exposed to the internet via CloudFront
+- Not dimensioned for any workload beyond demonstrating the application running
+- No HA or horizontal scalability
+- No persistent storage — disk and database content are ephemeral
+- No centralised user directory
+- No secrets management — only the default `superuser` credential is in use
+- No distinct Author / Publisher instance topology
+- No protection against application-level attacks (DDoS, etc.)
+- EC2 instance is rebuilt from scratch on every change — no AMI baking or in-place update mechanism
+- Some values are hardcoded (GitHub username, project prefix) — deployment elsewhere requires manual edits
+- CI workflows are scoped to the repository owner; other contributors cannot trigger apply or destroy
+- GHA SDLC coverage is minimal — no automated testing, no staging environment
 
 ## Disclaimer
-This code has been written with assistance from Anthropic's GenAI models. 
+This code has been written with assistance from Anthropic's GenAI models.
